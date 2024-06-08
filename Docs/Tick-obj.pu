@@ -1,0 +1,8 @@
+@startuml
+object Timer
+object TimerHandler
+object AOTick
+TimerHandler --> Timer : Receive SIGALRM
+AOTick --> TimerHandler : Receive Event EvID_TICK
+Subtimer --> AOTick : AOTick navigate Subtimers.
+@enduml
