@@ -8,7 +8,6 @@
 */
 typedef struct {
     BMLock_t lock;
-    BMEv_t ev; // default event
     BMDLNode_pt dsiq; // input queue of downstream object
     void *ddctx; // device dependent context
 } BMISR_t, *BMISR_pt;
@@ -27,8 +26,11 @@ typedef struct {
 
 #define BMISR_DEINIT(_varptr) BMLock_DEINIT(&(_varptr)->lock)
 
+/*!
+\brief Pseudo interrupt service routine implemented with pthread.
+*/
 typedef struct {
     BMISR_t base;
     pthread_t thread;
-} 
+} BMISR2_t, BMISR2_pt;
 #endif /* BMISR_H */

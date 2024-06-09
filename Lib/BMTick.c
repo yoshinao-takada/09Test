@@ -1,5 +1,8 @@
 #include "BMTick.h"
 #include "BMDefs.h"
+#include "BMEv.h"
+#include <assert.h>
+
 #pragma region subtimer_impl
 static BMSubtimer_t subtimers[BMSubtimer_POOLSIZE] =
 {
@@ -96,7 +99,96 @@ BMStatus_t BMSubtimers_Tick(BMDLNode_pt anchor)
     return status;
 }
 #pragma endregion subtimer_impl
+#pragma region TIME_CONVERSION_METHODS
+static void TimeVal_FromMillisec(struct timeval* t, uint16_t millisec)
+{
+    t->tv_sec = millisec / 1000;
+    t->tv_usec = 1000 * (millisec - t->tv_sec * 1000);
+}
 
+static void ITimerVal_FromMillisec(struct itimerval* t, uint16_t millisec)
+{
+    TimeVal_FromMillisec(&t->it_interval, millisec);
+    TimeVal_FromMillisec(&t->it_value, millisec);
+}
+#pragma endregion TIME_CONVERSION_METHODS
 #pragma region Systick_ISR_impl
+// event queue of interval timer dispatcher
+static BMDLNode_pt evq_tick = NULL;
+static BMEv_t ev_tick = BMEv_INIOBJ(BMEvId_TICK, NULL);
+
+static void SIGALRMHandler(int sig)
+{
+    if (BMEv_EnQ(&ev_tick, evq_tick))
+    { // no resource in BMDLNode static pool.
+        assert(0);
+    }
+}
+
+BMStatus_t BMTick_Init(BMISR_pt tickptr)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
+    assert(ctx);
+    do {
+        ITimerVal_FromMillisec(&ctx->it_new, ctx->interval);
+        // init sigaction
+        ctx->sa_new.sa_flags = 0;
+        ctx->sa_new.sa_handler = SIGALRMHandler;
+        if (sigaction(SIGALRM, &ctx->sa_new, &ctx->sa_old))
+        {
+            status = BMStatus_FAILURE;
+            break;
+        }
+    } while (0);
+    return status;
+}
+
+BMStatus_t BMTick_Deinit(BMISR_pt tickptr)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
+    assert(ctx);
+    do {
+        if (sigaction(SIGALRM, &ctx->sa_old, &ctx->sa_new))
+        {
+            status = BMStatus_FAILURE;
+            break;
+        }
+    } while (0);
+    return status;
+}
+
+BMStatus_t BMTick_Start(BMISR_pt tickptr)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
+    assert(ctx);
+    do {
+        ITimerVal_FromMillisec(&ctx->it_new, ctx->interval);
+        if (setitimer(ITIMER_REAL, &ctx->it_new, &ctx->it_old))
+        {
+            status = BMStatus_FAILURE;
+            break;
+        }
+    } while (0);
+    return status;
+}
+
+BMStatus_t BMTick_Stop(BMISR_pt tickptr)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
+    assert(ctx);
+    do {
+        if (setitimer(ITIMER_REAL, &ctx->it_old, &ctx->it_new))
+        {
+            status = BMStatus_FAILURE;
+            break;
+        }
+    } while (0);
+    return status;
+}
+
 #pragma endregion Systick_ISR_impl
 

@@ -1,10 +1,9 @@
 #if !defined(BMTICK_H)
 #define BMTICK_H
-#include "BMFSM.h"
 #include "BMISR.h"
-#include <time.h>
-#include <signal.h>
 #include <sys/time.h>
+#include <unistd.h>
+#include <signal.h>
 
 #pragma region subtimer
 typedef struct {
@@ -14,15 +13,30 @@ typedef struct {
 } BMSubtimer_t, *BMSubtimer_pt;
 
 #define BMSubtimer_DEFAULT { NULL, NULL, NULL, 0, 0 }
-
+/*!
+\brief init the static pool of subtimers.
+*/
 BMStatus_t BMSubtimer_SInit();
 
+/*!
+\brief deinit the static pool of subtimers.
+*/
 BMStatus_t BMSubtimer_SDeinit();
 
+/*!
+\brief get a subtimer instance from the static pool.
+*/
 BMSubtimer_pt BMSubtimer_Sget();
 
+/*!
+\brief return a subtimer instance into the static pool.
+*/
 BMStatus_t BMSubtimer_SReturn(BMSubtimer_pt subtimer);
 
+/*!
+\brief Clock the subtimer; clock the downcounter. Invoke a registered
+    callback if the cownter reaches at zero.
+*/
 BMStatus_t BMSubtimer_Tick(BMSubtimer_pt subtimer);
 
 #define BMSubtimer_SET(_subtmptr, _interval, _downcount) \
@@ -91,12 +105,24 @@ typedef struct {
         SigAction_DEFAULT, SigAction_DEFAULT }; \
     BMISR_SDECL(_varname, &(_varname ## _ctx))
 
+/*!
+\brief register handlers for SIGALRM and SIGUSR1.
+*/
 BMStatus_t BMTick_Init(BMISR_pt tickptr);
 
+/*!
+\brief reset registered signal handlers.
+*/
 BMStatus_t BMTick_Deinit(BMISR_pt tickptr);
 
+/*!
+\brief start interval timer.
+*/
 BMStatus_t BMTick_Start(BMISR_pt tickptr);
 
+/*!
+\brief stop interval timer
+*/
 BMStatus_t BMTick_Stop(BMISR_pt tickptr);
 #pragma region Timer_Signal_handler
 #endif /* BMTICK_H */
