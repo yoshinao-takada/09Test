@@ -15,7 +15,7 @@ RELEASE_OBJECTS = $(RELEASE_OBJ_DIR)/BMTest_Main.o \
 .PHONY	:	debug
 .PHONY	:	clean_debug
 
-$(DEBUG_TARGET)	:	$(DEBUG_OBJECTS)
+$(DEBUG_TARGET)	:	$(DEBUG_OBJECTS) $(DEBUG_BIN_DIR)/libBMLIB.a
 	$(CC) -o $@ $^ -L$(DEBUG_BIN_DIR) -lBMLIB -lpthread
 
 $(DEBUG_OBJ_DIR)/BMTest_Main.o	:	BMTest_Main.c

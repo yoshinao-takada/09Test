@@ -6,7 +6,7 @@ static uint8_t rb_buf[BMRingBuf_POOLSIZE * BMRingBuf_BUFSIZE];
 
 // static pool's elements
 static BMRingBuf_t rb[BMRingBuf_POOLSIZE] = {
-    { { BMRBBase_DEFAULT(BMRingBuf_BUFSIZE) }, rb_buf },
+    { BMRBBase_DEFAULT(BMRingBuf_BUFSIZE), rb_buf },
 };
 
 // static pool's anchor
@@ -27,7 +27,7 @@ BMStatus_t BMRingBuf_SInit()
             break;
         }
         newnode->data = rb + i;
-        BMDLNode_AddNext(&rb_anchor, &newnode);
+        BMDLNode_AddNext(&rb_anchor, newnode);
     }
     return status;
 }

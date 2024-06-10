@@ -3,6 +3,8 @@
 #include "BMTest.h"
 #include <stdlib.h>
 
+BMStatus_t BMDLNodeUT();
+
 static int _argc;
 static const char* const *_argv;
 
@@ -17,7 +19,10 @@ int main(int argc, const char* *argv)
     _argv = argv;
     BMTest_START;
     do {
-
+        if (BMStatus_SUCCESS != (status = BMDLNodeUT()))
+        {
+            BMTest_ERRLOGBREAKEX("Fail in BMDLNodeUT()");
+        }
     } while (0);
     BMTest_ENDFUNC(status);
     BMTest_END;

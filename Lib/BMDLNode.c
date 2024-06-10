@@ -33,15 +33,19 @@ void BMDLNode_AddPrev(BMDLNode_pt anchor, BMDLNode_pt newnode)
     BMLock_UNLOCK(&anchor->lock);
 }
 
+
 BMDLNode_pt BMDLNode_GetNext(BMDLNode_pt anchor)
 {
     // check empty link.
-    if (BMDLNode_EMPTY(anchor)) return NULL;
+    BMDLNode_pt curnext = NULL;
     BMLock_LOCK(&anchor->lock);
-    BMDLNode_pt curnext = anchor->next;
-    anchor->next = curnext->next;
-    curnext->next->prev = anchor;
-    curnext->next = curnext->prev = curnext;
+    if (BMDLNode_HAS_ANY(anchor))
+    {
+        curnext = anchor->next;
+        anchor->next = curnext->next;
+        curnext->next->prev = anchor;
+        curnext->next = curnext->prev = curnext;
+    }
     BMLock_UNLOCK(&anchor->lock);
     return curnext;
 }
@@ -49,12 +53,15 @@ BMDLNode_pt BMDLNode_GetNext(BMDLNode_pt anchor)
 BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor)
 {
     // check empty link.
-    if (BMDLNode_EMPTY(anchor)) return NULL;
+    BMDLNode_pt curprev = NULL;
     BMLock_LOCK(&anchor->lock);
-    BMDLNode_pt curprev = anchor->prev;
-    anchor->prev = curprev->prev;
-    curprev->prev->next = anchor;
-    curprev->next = curprev->prev = curprev;
+    if (BMDLNode_HAS_ANY(anchor))
+    {
+        curprev = anchor->prev;
+        anchor->prev = curprev->prev;
+        curprev->prev->next = anchor;
+        curprev->next = curprev->prev = curprev;
+    }
     BMLock_UNLOCK(&anchor->lock);
     return curprev;
 }
@@ -85,6 +92,7 @@ BMDLNode_SDECLANCHOR(poolAnchor);
 
 void BMDLNode_InitPool()
 {
+    BMDLNode_INITANCHOR(&poolAnchor);
     for (int i = 0; i < BMArray_SIZE(nodes); i++)
     {
         nodes[i].next = nodes[i].prev = &nodes[i];
@@ -92,7 +100,6 @@ void BMDLNode_InitPool()
         nodes[i].lock = 0;
         BMDLNode_AddNext(&poolAnchor, &nodes[i]);
     }
-    BMDLNode_INITANCHOR(&poolAnchor);
 }
 
 void BMDLNode_DeinitPool()
@@ -102,19 +109,10 @@ void BMDLNode_DeinitPool()
 
 BMDLNode_pt BMDLNode_SGet()
 {
-    BMDLNode_pt node = NULL;
-    BMLock_LOCK(&poolAnchor.lock);
-    if (BMDLNode_HAS_ANY(&poolAnchor))
-    {
-        node = BMDLNode_GetNext(&poolAnchor);
-    }
-    BMLock_UNLOCK(&poolAnchor.lock);
-    return node;
+    return BMDLNode_GetNext(&poolAnchor);
 }
 
 void BMDLNode_SReturn(BMDLNode_pt node)
 {
-    BMLock_LOCK(&poolAnchor.lock);
     BMDLNode_AddPrev(&poolAnchor, node);
-    BMLock_UNLOCK(&poolAnchor.lock);
 }
