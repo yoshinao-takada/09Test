@@ -4,6 +4,7 @@
 #include <stdlib.h>
 
 BMStatus_t BMDLNodeUT();
+BMStatus_t BMRingBufUT();
 
 static int _argc;
 static const char* const *_argv;
@@ -22,6 +23,10 @@ int main(int argc, const char* *argv)
         if (BMStatus_SUCCESS != (status = BMDLNodeUT()))
         {
             BMTest_ERRLOGBREAKEX("Fail in BMDLNodeUT()");
+        }
+        if (BMStatus_SUCCESS != (status = BMRingBufUT()))
+        {
+            BMTest_ERRLOGBREAKEX("Fail in BMRingBufUT()");
         }
     } while (0);
     BMTest_ENDFUNC(status);

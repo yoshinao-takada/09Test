@@ -26,6 +26,10 @@ typedef const BMRingBuf_t *BMRingBuf_cpt;
 #define BMRingBuf_INIT(_varptr) BMRBBase_INIT(&(_varptr)->base)
 
 #define BMRingBuf_DEINIT(_varptr) BMRBBase_DEINIT(&(_varptr)->base)
+/*!
+\brief clear the ring buffer.
+*/
+void BMRingBuf_Clear(BMRingBuf_pt rb);
 
 /*!
 \brief put a byte into a ring buffer.
