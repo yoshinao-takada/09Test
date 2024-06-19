@@ -45,6 +45,17 @@ BMStatus_t BMSubtimer_SGetSReturn()
     return status;
 }
 
+#pragma region param_and_handler_for_TickUT
+static int param0;
+
+static void* handler0(void* param)
+{
+    int* param_iptr = (int*)param;
+    (*param_iptr)++;
+    return (*param_iptr == 3) ? NULL : param;
+}
+#pragma region param_and_handler_for_TickUT
+
 static BMStatus_t BMSubtimer_CheckDefault(BMSubtimer_pt toTest)
 {
     BMSubtimer_t ref = BMSubtimer_DEFAULT;
@@ -62,13 +73,27 @@ static BMStatus_t BMSubtimer_CheckDefault(BMSubtimer_pt toTest)
 
 BMStatus_t BMSubtimer_TickUT()
 {
-    BMStatus_t status = BMStatus_SUCCESS;
+    BMStatus_t status = BMStatus_SUCCESS, status2 = BMStatus_SUCCESS;
     BMSubtimer_pt subtimer = NULL;
+    int i;
     do {
         subtimer = BMSubtimer_SGet();
         if (BMStatus_SUCCESS != (status = BMSubtimer_CheckDefault(subtimer)))
         {
             BMTest_ERRLOGBREAKEX("BMSubtimer_SGet() returned instance is not inititalized.");
+        }
+        BMSubtimer_SET_COUNTER(subtimer, 4, 3);
+        BMSubtimer_SET_HANDLER(subtimer, handler0, &param0);
+        param0 = 0;
+        for (i = 0; (status2 == BMStatus_SUCCESS) && (i < 100); i++)
+        {
+            status2 = BMSubtimer_Tick(subtimer);
+            // printf("i = %d, downcount = %u, status2 = %u\n",
+            // i, subtimer->downcount, status2);
+        }
+        if (i != 11)
+        {
+            BMTest_ERRLOGBREAKEX("Fail to detect error in BMSubtimer_Tick()");
         }
     } while (0);
     BMTest_ENDFUNC(status);

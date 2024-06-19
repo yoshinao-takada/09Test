@@ -24,6 +24,7 @@ typedef const BMEv_t *BMEv_cpt;
 #define BMEv_INIOBJ(_id, _param) { _id, 0, _param, BMLock_INIOBJ }
 /*!
 \brief enqueue an event.
+    ev->listners is automatically incremented in the method.
 \param ev [in] event ptr
 \param q [in] queue anchor
 \return SUCCESS or NORESOURCE
@@ -31,7 +32,9 @@ typedef const BMEv_t *BMEv_cpt;
 BMStatus_t BMEv_EnQ(BMEv_pt ev, BMDLNode_pt q);
 
 /*!
-\brief dequeue an event
+\brief dequeue an event.
+    ev->listners is not decremented. Therefore, a caller of the method
+    must decrement ev->listners at the end of processing the event.
 \param q [in] queue anchor
 \return a dequeued event
 */

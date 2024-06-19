@@ -13,6 +13,14 @@ typedef struct {
 } BMSubtimer_t, *BMSubtimer_pt;
 
 #define BMSubtimer_DEFAULT { NULL, NULL, NULL, 0, 0 }
+
+#define BMSubtimer_SET_COUNTER(_varptr, _interval, _downcount) \
+    (_varptr)->interval = _interval; (_varptr)->downcount = _downcount
+
+#define BMSubtimer_SET_HANDLER(_varptr, _handler, _param) \
+    (_varptr)->handler = _handler; \
+    (_varptr)->result = (_varptr)->param = _param
+
 /*!
 \brief init the static pool of subtimers.
 */
@@ -38,15 +46,6 @@ BMStatus_t BMSubtimer_SReturn(BMSubtimer_pt subtimer);
     callback if the cownter reaches at zero.
 */
 BMStatus_t BMSubtimer_Tick(BMSubtimer_pt subtimer);
-
-#define BMSubtimer_SET(_subtmptr, _interval, _downcount) \
-    (_subtmptr)->interval = _interval; \
-    (_subtmptr)->downcount = _downcount
-
-#define BMSubtimer_INIT(_subtmptr, _handler, _param, _interval, _downcount) \
-    (_subtmptr)->handler = _handler; \
-    (_subtmptr)->param = _param; \
-    BMSubtimer_SET(_subtmptr, _interval, _downcount)
 
 /*!
 \brief Tick the subtimers linked to anchor.
