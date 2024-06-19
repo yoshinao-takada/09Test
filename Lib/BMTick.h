@@ -26,7 +26,7 @@ BMStatus_t BMSubtimer_SDeinit();
 /*!
 \brief get a subtimer instance from the static pool.
 */
-BMSubtimer_pt BMSubtimer_Sget();
+BMSubtimer_pt BMSubtimer_SGet();
 
 /*!
 \brief return a subtimer instance into the static pool.

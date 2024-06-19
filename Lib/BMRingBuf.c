@@ -2,11 +2,11 @@
 #include "BMDLNode.h"
 
 // static pool's raw buffer
-static uint8_t rb_buf[BMRingBuf_POOLSIZE * BMRingBuf_BUFSIZE];
+static uint8_t rb_buf[BMRingBuf_STATIC_POOL_SIZE * BMRingBuf_RB_SIZE];
 
 // static pool's elements
-static BMRingBuf_t rb[BMRingBuf_POOLSIZE] = {
-    { BMRBBase_DEFAULT(BMRingBuf_BUFSIZE), rb_buf },
+static BMRingBuf_t rb[BMRingBuf_STATIC_POOL_SIZE] = {
+    { BMRBBase_DEFAULT(BMRingBuf_RB_SIZE), rb_buf },
 };
 
 // static pool's anchor
@@ -58,12 +58,12 @@ BMStatus_t BMRingBuf_SInit()
 {
     BMStatus_t status = BMStatus_SUCCESS;
     BMDLNode_INITANCHOR(&rb_anchor);
-    for (int i = 0; i < BMRingBuf_POOLSIZE; i++)
+    for (int i = 0; i < BMRingBuf_STATIC_POOL_SIZE; i++)
     {
         if (i > 0)
         {
             memcpy(rb + i, rb, sizeof(BMRingBuf_t));
-            rb[i].buf += i * BMRingBuf_BUFSIZE;
+            rb[i].buf += i * BMRingBuf_RB_SIZE;
         }
         BMDLNode_pt newnode = BMDLNode_SGet();
         if (!newnode)

@@ -3,9 +3,6 @@
 #include "BMRBBase.h"
 #include <memory.h>
 
-#define BMRingBuf_STATIC_POOL_SIZE  4
-#define BMRingBuf_RB_SIZE           128
-
 #pragma region BMRingBuf_DECL
 typedef struct {
     BMRBBase_t base;

@@ -6,12 +6,6 @@
 #if !defined(BMEv_POOLSIZE)
 #define BMEv_POOLSIZE   64
 #endif
-#if !defined(BMLinBuf_POOLSIZE)
-#define BMLinBuf_POOLSIZE   16
-#endif
-#if !defined(BMRingBuf_POOLSIZE)
-#define BMRingBuf_POOLSIZE  4
-#endif
 #if !defined(BMSubtimer_POOLSIZE)
 #define BMSubtimer_POOLSIZE 4
 #endif
@@ -20,9 +14,11 @@
 #endif
 #if !defined(BMLinBuf_BUFSIZE)
 #define BMLinBuf_BUFSIZE    40
+#define BMLinBuf_POOLSIZE   16
 #endif
-#if !defined(BMRingBuf_BUFSIZE)
-#define BMRingBuf_BUFSIZE   128
+#if !defined(BMRingBuf_RB_SIZE)
+#define BMRingBuf_RB_SIZE           128
+#define BMRingBuf_STATIC_POOL_SIZE  4
 #endif
 #pragma endregion STATIC_POOL_AND_BUF_SIZES
 

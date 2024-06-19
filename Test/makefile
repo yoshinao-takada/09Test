@@ -8,9 +8,11 @@ RELEASE_OBJ_DIR = ../Release/O
 DEBUG_TARGET = $(DEBUG_BIN_DIR)/BMTest.exe
 RELEASE_TARGET = $(RELEASE_BIN_DIR)/BMTest.exe
 DEBUG_OBJECTS = $(DEBUG_OBJ_DIR)/BMTest_Main.o \
-	$(DEBUG_OBJ_DIR)/BMDLNodeUT.o $(DEBUG_OBJ_DIR)/BMRingBufUT.o
+	$(DEBUG_OBJ_DIR)/BMDLNodeUT.o $(DEBUG_OBJ_DIR)/BMRingBufUT.o \
+	$(DEBUG_OBJ_DIR)/BMTickUT.o
 RELEASE_OBJECTS = $(RELEASE_OBJ_DIR)/BMTest_Main.o \
-	$(RELEASE_OBJ_DIR)/BMDLNodeUT.o $(RELEASE_OBJ_DIR)/BMRingBufUT.o
+	$(RELEASE_OBJ_DIR)/BMDLNodeUT.o $(RELEASE_OBJ_DIR)/BMRingBufUT.o \
+	$(RELEASE_OBJ_DIR)/BMTickUT.o
 
 .PHONY	:	debug
 .PHONY	:	clean_debug
@@ -25,6 +27,9 @@ $(DEBUG_OBJ_DIR)/BMDLNodeUT.o	:	BMDLNodeUT.c
 	$(CC) $(DEBUG_CC_FLAGS) -o $@ $<
 
 $(DEBUG_OBJ_DIR)/BMRingBufUT.o	:	BMRingBufUT.c
+	$(CC) $(DEBUG_CC_FLAGS) -o $@ $<
+
+$(DEBUG_OBJ_DIR)/BMTickUT.o	:	BMTickUT.c
 	$(CC) $(DEBUG_CC_FLAGS) -o $@ $<
 
 clean_debug	:

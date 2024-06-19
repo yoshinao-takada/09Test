@@ -2,6 +2,7 @@
 #include "BMDefs.h"
 #include "BMEv.h"
 #include <assert.h>
+#include <memory.h>
 
 #pragma region subtimer_impl
 static BMSubtimer_t subtimers[BMSubtimer_POOLSIZE] =
@@ -37,11 +38,12 @@ BMStatus_t BMSubtimer_SInit()
 
 BMStatus_t BMSubtimer_SDeinit()
 {
-    return BMDLNode_DEINITANCHOR(&subtimer_pool) ?
-        BMStatus_FAILURE : BMStatus_SUCCESS;
+    return BMDLNode_DEINITANCHOR(&subtimer_pool);
 }
 
-BMSubtimer_pt BMSubtimer_Sget()
+static const BMSubtimer_t SUBTIMER_TEMPLATE = BMSubtimer_DEFAULT;
+
+BMSubtimer_pt BMSubtimer_SGet()
 {
     BMSubtimer_pt subtimer = NULL;
     do {
@@ -52,6 +54,7 @@ BMSubtimer_pt BMSubtimer_Sget()
         }
         subtimer = node->data;
         BMDLNode_SReturn(node);
+        memcpy(subtimer, &SUBTIMER_TEMPLATE, sizeof(BMSubtimer_t));
     } while (0);
     return subtimer;
 }
