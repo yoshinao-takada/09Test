@@ -77,6 +77,7 @@ BMStatus_t BMSubtimer_SReturn(BMSubtimer_pt subtimer)
 
 BMStatus_t BMSubtimer_Tick(BMSubtimer_pt subtimer)
 {
+    subtimer->result = subtimer->param;
     if (subtimer->downcount && subtimer->handler)
     {        
         if (0 == (--(subtimer->downcount)))

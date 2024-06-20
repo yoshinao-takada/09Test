@@ -12,16 +12,23 @@ typedef struct {
 typedef const BMEv_t *BMEv_cpt;
 
 #define BMEv_INIT(_evptr) ( \
-    (_evptr)->id = 0, (_evptr)->listeners = 0, (_evptr)->param = NULL, \
-    BMLock_INIT(&((evptr)->lock)))
+    (_evptr)->listeners = 0, BMLock_INIT(&((_evptr)->lock)))
 
-#define BMEv_DEINIT(_evptr) BMLock_DEINIT(_evptr)
+#define BMEv_DEINIT(_evptr) BMLock_DEINIT(&((_evptr)->lock))
 
 #define BMEv_LOCK(_evptr) BMLock_LOCK(&((_evptr)->lock))
 
 #define BMEv_UNLOCK(_evptr) BMLock_UNLOCK(&((_evptr)->lock))
 
 #define BMEv_INIOBJ(_id, _param) { _id, 0, _param, BMLock_INIOBJ }
+
+/*!
+\brief Interlocked decrement of reference counting.
+*/
+#define BMEv_UNREF(_evptr) ( \
+    BMLock_LOCK(&((_evptr)->lock)), (_evptr)->listeners--, \
+    BMLock_UNLOCK(&((_evptr)->lock)))
+
 /*!
 \brief enqueue an event.
     ev->listners is automatically incremented in the method.
