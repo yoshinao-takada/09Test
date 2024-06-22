@@ -90,6 +90,39 @@ BMStatus_t BMSubtimer_Tick(BMSubtimer_pt subtimer)
         BMStatus_SUCCESS : BMStatus_FAILURE;
 }
 
+BMStatus_t BMSubtimers_Add(BMDLNode_pt anchor, BMSubtimer_pt subtimer)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMDLNode_pt newnode = NULL;
+    do {
+        if (!(newnode = BMDLNode_SGet()))
+        {
+            status = BMStatus_NORESOURCE;
+            break;
+        }
+        newnode->data = (void*)subtimer;
+        BMDLNode_AddPrev(anchor, newnode);
+    } while (0);
+    return status;
+}
+
+BMStatus_t BMSubtimers_Remove(BMDLNode_pt anchor, BMSubtimer_pt subtimer)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMDLNode_pt newnode = NULL;
+    do {
+        BMDLNode_pt found = BMDLNode_FIND(anchor, subtimer);
+        if (!found)
+        {
+            status = BMStatus_NOTFOUND;
+            break;
+        }
+        BMDLNode_Remove(anchor, found);
+        BMDLNode_SReturn(found);
+    } while (0);
+    return status;
+}
+
 BMStatus_t BMSubtimers_Tick(BMDLNode_pt anchor)
 {
     BMStatus_t status = BMStatus_SUCCESS;

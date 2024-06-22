@@ -18,8 +18,8 @@ typedef struct {
     (_varptr)->interval = _interval; (_varptr)->downcount = _downcount
 
 #define BMSubtimer_SET_HANDLER(_varptr, _handler, _param) \
-    (_varptr)->handler = _handler; \
-    (_varptr)->result = (_varptr)->param = _param
+    (_varptr)->handler = (_handler); \
+    (_varptr)->result = (_varptr)->param = (_param)
 
 /*!
 \brief init the static pool of subtimers.
@@ -48,7 +48,17 @@ BMStatus_t BMSubtimer_SReturn(BMSubtimer_pt subtimer);
 BMStatus_t BMSubtimer_Tick(BMSubtimer_pt subtimer);
 
 /*!
-\brief Tick the subtimers linked to anchor.
+\brief Add a subtimer to a subtimer list.
+*/
+BMStatus_t BMSubtimers_Add(BMDLNode_pt anchor, BMSubtimer_pt subtimer);
+
+/*!
+\brief Remove a subtimer from a subtimer list.
+*/
+BMStatus_t BMSubtimers_Remove(BMDLNode_pt anchor, BMSubtimer_pt subtimer);
+
+/*!
+\brief Trigger the subtimers linked to anchor.
 \param Anchor [in,out] An anchor of a linked list of BMDLNode_t containing
     BMSubtimer_t instances.
 */

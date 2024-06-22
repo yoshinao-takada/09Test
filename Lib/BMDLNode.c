@@ -66,6 +66,24 @@ BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor)
     return curprev;
 }
 
+BMStatus_t BMDLNode_Remove(BMDLNode_pt anchor, BMDLNode_pt toRemove)
+{
+    BMStatus_t status = BMStatus_FAILURE;
+    BMDLNode_pt iter = anchor->next;
+    BMDLNode_pt end = anchor;
+    for (; iter = iter->next; iter != end)
+    {
+        if (iter == toRemove)
+        {
+            status = BMStatus_SUCCESS;
+            iter->prev->next = iter->next;
+            iter->next->prev = iter->prev;
+            iter->next = iter->prev = iter;
+        }
+    }
+    return status;
+}
+
 BMDLNode_pt BMDLNode_Find(
     BMDLNode_pt anchor, const void *tofind, 
     int (*zeroifmatch)(const void *, const void *))
@@ -84,6 +102,11 @@ BMDLNode_pt BMDLNode_Find(
     }
     BMLock_UNLOCK(&anchor->lock);
     return found;
+}
+
+int BMDLNode_DefaultMatch(const void *pv0, const void *pv1)
+{
+    return (int)(pv1 - pv0);
 }
 
 static BMDLNode_t nodes[BMDLNode_POOLSIZE];

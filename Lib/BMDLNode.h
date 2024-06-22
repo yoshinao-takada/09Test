@@ -38,6 +38,11 @@ BMDLNode_pt BMDLNode_GetNext(BMDLNode_pt anchor);
 */
 BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor);
 
+/*!
+\brief remove the node matching to toRemove.
+*/
+BMStatus_t BMDLNode_Remove(BMDLNode_pt anchor, BMDLNode_pt toRemove);
+
 #define BMDLNode_DECLANCHOR(_varname) \
     BMDLNode_t _varname = { &_varname, &_varname, NULL, 0 }
 
@@ -65,6 +70,11 @@ BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor);
 */
 BMDLNode_pt BMDLNode_Find(BMDLNode_pt anchor, const void* tofind,
     int (*zeroifmatch)(const void*, const void*));
+
+int BMDLNode_DefaultMatch(const void* pv0, const void* pv1);
+
+#define BMDLNode_FIND(_anchor, _tofind) \
+BMDLNode_Find(_anchor, _tofind, BMDLNode_DefaultMatch)
 
 /*!
 \brief Initialize the static pool.
