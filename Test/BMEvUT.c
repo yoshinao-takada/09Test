@@ -87,3 +87,4 @@ BMStatus_t BMEvUT()
     BMTest_ENDFUNC(status);
     return status;
 }
+

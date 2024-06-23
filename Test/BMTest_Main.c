@@ -2,26 +2,61 @@
 #include "BMDefs.h"
 #include "BMTest.h"
 #include <stdlib.h>
+#include <strings.h>
+#pragma region subcmd
+static const char* FLAGS[] =
+{
+    "systick", "rxthread", 
+};
+
+typedef enum {
+    Subcmd_SYSTICK = 0,
+    Subcmd_RXTHREAD = 1,
+} Subcmd_t;
+
+static int ArgvMatch(int argc, const char* const *argv, const char* flag)
+{
+    int flaglen = strlen(flag);
+    if (argc < 2) return 0;
+    const char* argflag = argv[1];
+    return
+        (strlen(argflag) >= flaglen) &&
+        (0 == strncasecmp(argflag, flag, flaglen));
+}
+
+static BMStatus_t ArgMatchRun(int argc, const char* const *argv, Subcmd_t subcmd,
+    BMStatus_t (*ProgStart)(int argc, const char* const *argv))
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+
+    if (ArgvMatch(argc, argv, FLAGS[(int)subcmd]))
+    {
+        return (status = ProgStart(argc, argv)) ? status : BMStatus_SUCCESSBREAK;
+    }
+    else
+    {
+        return BMStatus_SUCCESS;
+    }
+}
+#pragma endregion subcmd
 
 BMStatus_t BMDLNodeUT();
 BMStatus_t BMRingBufUT();
 BMStatus_t BMTickUT();
 BMStatus_t BMEvUT();
-
-static int _argc;
-static const char* const *_argv;
-
-int ARGC() { return _argc; }
-
-const char* const * ARGV() { return _argv; }
+BMStatus_t BMSystick(int argc, const char* const *argv);
 
 int main(int argc, const char* *argv)
 {
     BMStatus_t status = BMStatus_SUCCESS;
-    _argc = argc;
-    _argv = argv;
     BMTest_START;
     do {
+        if (BMStatus_SUCCESS != 
+            (status = ArgMatchRun(argc, argv, Subcmd_SYSTICK, BMSystick)))
+        {
+            if (status == BMStatus_SUCCESSBREAK) break;
+            else BMTest_ERRLOGBREAKEX("Fail in BMSystick()");
+        }
         if (BMStatus_SUCCESS != (status = BMDLNodeUT()))
         {
             BMTest_ERRLOGBREAKEX("Fail in BMDLNodeUT()");

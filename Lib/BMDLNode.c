@@ -68,19 +68,11 @@ BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor)
 
 BMStatus_t BMDLNode_Remove(BMDLNode_pt anchor, BMDLNode_pt toRemove)
 {
-    BMStatus_t status = BMStatus_FAILURE;
-    BMDLNode_pt iter = anchor->next;
-    BMDLNode_pt end = anchor;
-    for (; iter = iter->next; iter != end)
-    {
-        if (iter == toRemove)
-        {
-            status = BMStatus_SUCCESS;
-            iter->prev->next = iter->next;
-            iter->next->prev = iter->prev;
-            iter->next = iter->prev = iter;
-        }
-    }
+    BMStatus_t status = BMLock_LOCK(&anchor->lock);
+    toRemove->prev->next = toRemove->next;
+    toRemove->next->prev = toRemove->prev;
+    toRemove->next = toRemove->prev = toRemove;
+    BMLock_UNLOCK(&anchor->lock);
     return status;
 }
 

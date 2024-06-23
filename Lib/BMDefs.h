@@ -69,6 +69,7 @@ typedef uint16_t BMStatus_t;
 typedef uint16_t BMEvId_t;
 
 #define BMStatus_SUCCESS        0
+#define BMStatus_SUCCESSBREAK   1
 #define BMStatus_ERRBEGIN       0x4000
 #define BMStatus_FAILURE        (BMStatus_ERRBEGIN + 1)
 #define BMStatus_INVALID        (BMStatus_ERRBEGIN + 2)
