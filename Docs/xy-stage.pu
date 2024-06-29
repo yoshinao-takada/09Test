@@ -1,0 +1,13 @@
+@startuml
+state "Stationary" as ST
+state "Velocity Ctrl" as VC
+state "Position Ctrl" as PC
+state c <<choice>>
+
+[*] -r-> ST
+ST --> c : Start cmd
+c --> VC : [distance > threshold]
+c --> PC : [distance <= threshold]
+VC --> PC : [distance <= threshold]
+PC --> ST : [distance < threshold2]
+@enduml

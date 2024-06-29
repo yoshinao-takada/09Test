@@ -1,0 +1,8 @@
+@startuml
+[*] -r-> Up
+Up --> Up : EvAny[Ctr < Max]/Ctr++;
+Up --> Down : EvAny[Ctr == Max]
+Down --> Down : EvAny[Ctr > 0]/Ctr--;
+Down --> Up : EvAny[Ctr == 0]
+Up : Entry/Ctr = 0;
+@enduml

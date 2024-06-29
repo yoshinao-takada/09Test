@@ -2,6 +2,7 @@
 #include "BMDefs.h"
 #include "BMTest.h"
 #include <stdlib.h>
+#include <string.h>
 #include <strings.h>
 #pragma region subcmd
 static const char* FLAGS[] =
@@ -44,6 +45,7 @@ BMStatus_t BMDLNodeUT();
 BMStatus_t BMRingBufUT();
 BMStatus_t BMTickUT();
 BMStatus_t BMEvUT();
+BMStatus_t BMFSMUT();
 BMStatus_t BMSystick(int argc, const char* const *argv);
 
 int main(int argc, const char* *argv)
@@ -72,6 +74,10 @@ int main(int argc, const char* *argv)
         if (BMStatus_SUCCESS != (status = BMEvUT()))
         {
             BMTest_ERRLOGBREAKEX("Fail in BMEvUT()");
+        }
+        if (BMStatus_SUCCESS != (status = BMFSMUT()))
+        {
+            BMTest_ERRLOGBREAKEX("Fail in BMFSMUT()");
         }
     } while (0);
     BMTest_ENDFUNC(status);

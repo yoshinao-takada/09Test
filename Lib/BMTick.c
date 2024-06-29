@@ -1,6 +1,5 @@
 #include "BMTick.h"
 #include "BMDefs.h"
-#include "BMEv.h"
 #include <assert.h>
 #include <memory.h>
 
@@ -11,6 +10,13 @@ static BMSubtimer_t subtimers[BMSubtimer_POOLSIZE] =
 };
 
 BMDLNode_SDECLANCHOR(subtimer_pool);
+
+void *BMSubtimer_DefaultHandler(void *param)
+{
+    BMSubtimerParam_pt evq = (BMSubtimerParam_pt)param;
+    BMStatus_t status = BMEv_EnQ(&evq->ev, evq->oq);
+    return status ? NULL : param;
+}
 
 BMStatus_t BMSubtimer_SInit()
 {
@@ -135,6 +141,18 @@ BMStatus_t BMSubtimers_Tick(BMDLNode_pt anchor)
     BMDLNode_UNLOCK(anchor);
     return status;
 }
+
+BMStatus_t BMTimerDispatcher_Crunch(BMTimerDispatcher_pt dispather)
+{
+    BMStatus_t status = BMStatus_SUCCESS;
+    BMEv_pt evptr = BMEv_DeQ(&dispather->iq);
+    if (evptr)
+    {
+        status = BMSubtimers_Tick(&dispather->subtimers);
+        evptr->listeners--;
+    }
+    return status;
+}
 #pragma endregion subtimer_impl
 #pragma region TIME_CONVERSION_METHODS
 static void TimeVal_FromMillisec(struct timeval* t, uint16_t millisec)
@@ -149,30 +167,38 @@ static void ITimerVal_FromMillisec(struct itimerval* t, uint16_t millisec)
     TimeVal_FromMillisec(&t->it_value, millisec);
 }
 #pragma endregion TIME_CONVERSION_METHODS
-#pragma region Systick_ISR_impl
-// event queue of interval timer dispatcher
-static BMDLNode_pt evq_tick = NULL;
-static BMEv_t ev_tick = BMEv_INIOBJ(BMEvId_TICK, NULL);
 
-static void SIGALRMHandler(int sig)
+static BMTickCtx_t tickctx;
+static BMEv_t tickevent = BMEv_INIOBJ(BMEvId_TICK, NULL);
+static BMTimerDispatcher_t dispatcher = {
+    BMDLNode_INIOBJ(&dispatcher.iq),
+    BMDLNode_INIOBJ(&dispatcher.subtimers)
+};
+
+#pragma region Systick_timer_access_methods_for_test
+BMTickCtx_pt TickCtx() { return &tickctx; }
+BMEv_pt  TickEvent() { return &tickevent; }
+BMTimerDispatcher_pt TimerDispatcher() { return &dispatcher; }
+#pragma endregion Systick_timer_access_methods_for_test
+
+static void SIGALRM_Handler(int sig)
 {
-    if (BMEv_EnQ(&ev_tick, evq_tick))
-    { // no resource in BMDLNode static pool.
-        assert(0);
-    }
+    BMTimerDispatcher_ENQ(&dispatcher, &tickevent);
 }
 
-BMStatus_t BMTick_Init(BMISR_pt tickptr)
+BMStatus_t BMTick_Init(uint16_t interval)
 {
     BMStatus_t status = BMStatus_SUCCESS;
-    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
-    assert(ctx);
     do {
-        ITimerVal_FromMillisec(&ctx->it_new, ctx->interval);
+        BMTickCtx_t iniobj = BMTickCtx_DEFAULT(interval);
+        memcpy(&tickctx, &iniobj, sizeof(BMTickCtx_t));
+        BMEv_INIT(&tickevent);
+        BMTimerDispatcher_INIT(&dispatcher);
+        ITimerVal_FromMillisec(&tickctx.it_new, interval);
         // init sigaction
-        ctx->sa_new.sa_flags = 0;
-        ctx->sa_new.sa_handler = SIGALRMHandler;
-        if (sigaction(SIGALRM, &ctx->sa_new, &ctx->sa_old))
+        tickctx.sa_new.sa_flags = 0;
+        tickctx.sa_new.sa_handler = SIGALRM_Handler;
+        if (sigaction(SIGALRM, &tickctx.sa_new, &tickctx.sa_old))
         {
             status = BMStatus_FAILURE;
             break;
@@ -181,13 +207,13 @@ BMStatus_t BMTick_Init(BMISR_pt tickptr)
     return status;
 }
 
-BMStatus_t BMTick_Deinit(BMISR_pt tickptr)
+BMStatus_t BMTick_Deinit()
 {
     BMStatus_t status = BMStatus_SUCCESS;
-    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
-    assert(ctx);
     do {
-        if (sigaction(SIGALRM, &ctx->sa_old, &ctx->sa_new))
+        BMEv_DEINIT(&tickevent);
+        BMTimerDispatcher_DEINIT(&dispatcher);
+        if (sigaction(SIGALRM, &tickctx.sa_old, &tickctx.sa_new))
         {
             status = BMStatus_FAILURE;
             break;
@@ -196,14 +222,11 @@ BMStatus_t BMTick_Deinit(BMISR_pt tickptr)
     return status;
 }
 
-BMStatus_t BMTick_Start(BMISR_pt tickptr)
+BMStatus_t BMTick_Start()
 {
     BMStatus_t status = BMStatus_SUCCESS;
-    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
-    assert(ctx);
     do {
-        ITimerVal_FromMillisec(&ctx->it_new, ctx->interval);
-        if (setitimer(ITIMER_REAL, &ctx->it_new, &ctx->it_old))
+        if (setitimer(ITIMER_REAL, &tickctx.it_new, &tickctx.it_old))
         {
             status = BMStatus_FAILURE;
             break;
@@ -212,13 +235,11 @@ BMStatus_t BMTick_Start(BMISR_pt tickptr)
     return status;
 }
 
-BMStatus_t BMTick_Stop(BMISR_pt tickptr)
+BMStatus_t BMTick_Stop()
 {
     BMStatus_t status = BMStatus_SUCCESS;
-    BMTickCtx_pt ctx = (BMTickCtx_pt)tickptr->ddctx;
-    assert(ctx);
     do {
-        if (setitimer(ITIMER_REAL, &ctx->it_old, &ctx->it_new))
+        if (setitimer(ITIMER_REAL, &tickctx.it_old, &tickctx.it_new))
         {
             status = BMStatus_FAILURE;
             break;
@@ -227,5 +248,12 @@ BMStatus_t BMTick_Stop(BMISR_pt tickptr)
     return status;
 }
 
-#pragma endregion Systick_ISR_impl
+BMStatus_t BMTick_AddSubtimer(BMSubtimer_pt subtimer)
+{
+    return BMSubtimers_Add(&dispatcher.subtimers, subtimer);
+}
 
+BMStatus_t BMTick_RemoveSubtimer(BMSubtimer_pt subtimer)
+{
+    return BMSubtimers_Remove(&dispatcher.subtimers, subtimer);
+}
