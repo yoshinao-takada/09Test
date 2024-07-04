@@ -1,0 +1,4 @@
+mkdir -p ../Debug/O
+cc -c -g -I. -o ../Debug/O/BMTick.o BMTick.c
+mkdir -p ../Debug/Bin
+ar r ../Debug/Bin/libBMLIB.a ../Debug/O/BMEv.o ../Debug/O/BMCRC.o ../Debug/O/BMRBBase.o ../Debug/O/BMFSM.o ../Debug/O/BMDLNode.o ../Debug/O/BMRingBuf.o ../Debug/O/BMLinBuf.o ../Debug/O/BMTick.o

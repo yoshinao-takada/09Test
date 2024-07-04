@@ -8,6 +8,8 @@ typedef struct BMDLNode {
     BMLock_t lock;
 } BMDLNode_t, *BMDLNode_pt;
 
+#define BMDLNode_INIOBJ(_varname) { &_varname, &_varname, NULL, 0 }
+
 
 #define BMDLNode_HAS_ANY(_anchorptr) ((_anchorptr)->prev != (_anchorptr))
 #define BMDLNode_EMPTY(_anchorptr) ((_anchorptr)->prev == (_anchorptr))
@@ -44,10 +46,10 @@ BMDLNode_pt BMDLNode_GetPrev(BMDLNode_pt anchor);
 BMStatus_t BMDLNode_Remove(BMDLNode_pt anchor, BMDLNode_pt toRemove);
 
 #define BMDLNode_DECLANCHOR(_varname) \
-    BMDLNode_t _varname = { &_varname, &_varname, NULL, 0 }
+    BMDLNode_t _varname = BMDLNode_INIOBJ(_varname)
 
 #define BMDLNode_SDECLANCHOR(_varname) \
-    static BMDLNode_t _varname = { &_varname, &_varname, NULL, 0 }
+    static BMDLNode_t _varname = BMDLNode_INIOBJ(_varname)
 
 #define BMDLNode_INITANCHOR(_varptr) BMLock_INIT(&(_varptr)->lock)
 
@@ -56,8 +58,6 @@ BMStatus_t BMDLNode_Remove(BMDLNode_pt anchor, BMDLNode_pt toRemove);
 #define BMDLNode_LOCK(_nodeptr) BMLock_LOCK(&((_nodeptr)->lock))
 
 #define BMDLNode_UNLOCK(_nodeptr) BMLock_UNLOCK(&((_nodeptr)->lock))
-
-#define BMDLNode_INIOBJ(_varptr) { _varptr, _varptr, NULL, BMLock_INIOBJ }
 
 /*!
 \brief find the node with the matched condition specified by zeroifmatch.

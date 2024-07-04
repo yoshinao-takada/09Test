@@ -23,19 +23,18 @@ typedef struct BMFSM {
 
     // input event queues of downstream objects
     BMDLNode_t dsiq;
-
-    // context can hold a variable of any type.
-    void* ctx;
 } BMFSM_t, *BMFSM_pt;
 
 /*!
 \brief declare an instance of BMFSM_t.
 */
-#define BMFSM_DECL(_varname, _state, _ctx) \
-    BMFSM_t _varname = { _state, BMStateResult_IGNORE, \
-        { &_varname.iq, &_varname.iq, NULL, 0 }, \
-        { &_varname.dsiq, &_varname.dsiq, NULL, 0 }, \
-        _ctx }
+#define BMFSM_INIOBJ(_varname, _state) { \
+    _state, BMStateResult_IGNORE, \
+    { &_varname.iq, &_varname.iq, NULL, 0 }, \
+    { &_varname.dsiq, &_varname.dsiq, NULL, 0 }}
+
+#define BMFSM_DECL(_varname, _state) \
+    BMFSM_t _varname = BMFSM_INIOBJ(_varname, _state)
 
 /*!
 \brief Init input event queue and output queue list
@@ -43,6 +42,7 @@ typedef struct BMFSM {
 #define BMFSM_INIT(_varptr) \
     BMDLNode_INITANCHOR(&(_varptr)->iq); \
     BMDLNode_INITANCHOR(&(_varptr)->dsiq)
+
 
 #define BMFSM_DEINIT(_varptr) \
     BMDLNode_DEINITANCHOR(&(_varptr)->iq); \

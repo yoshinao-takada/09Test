@@ -1,6 +1,6 @@
 #if !defined(BMTICK_H)
 #define BMTICK_H
-#include "BMEv.h"
+#include "BMFSM.h"
 #include <sys/time.h>
 #include <unistd.h>
 #include <signal.h>
@@ -85,33 +85,26 @@ BMStatus_t BMSubtimers_Tick(BMDLNode_pt anchor);
 
 #pragma region Timer_dispatcher_object
 typedef struct {
-    BMDLNode_t iq; // The input queue receives timer overflow events.
-    BMDLNode_t subtimers; // subtimer list
+    BMFSM_t base;
+    BMDLNode_t subtimers; // Anchor of subtimer linked list.
 } BMTimerDispatcher_t, *BMTimerDispatcher_pt;
 
+BMStateResult_t BMTimerDispatcher_State(BMFSM_pt fsm, BMEv_pt ev);
+
+#define BMTimerDispatcher_INIOBJ(_varname) { \
+        BMFSM_INIOBJ(_varname.base, BMTimerDispatcher_State), \
+        BMDLNode_INIOBJ(_varname.subtimers) }
+
 #define BMTimerDispatcher_DECL(_varname) \
-    BMTimerDispatcher_t _varname = { \
-        { &_varname.iq, &_varname.iq, NULL, 0 }, \
-        { &_varname.subtimers, &_varname.subtimers, NULL, 0 }}
+    BMTimerDispatcher_t _varname = BMTimerDispatcher_INIOBJ(_varname)
 
 #define BMTimerDispatcher_INIT(_varptr) \
-    BMDLNode_INITANCHOR(&((_varptr)->iq)); \
+    BMFSM_INIT(&((_varptr)->base)); \
     BMDLNode_INITANCHOR(&((_varptr)->subtimers))
 
 #define BMTimerDispatcher_DEINIT(_varptr) \
-    BMDLNode_DEINITANCHOR(&((_varptr)->iq)); \
+    BMFSM_DEINIT(&((_varptr)->base)); \
     BMDLNode_DEINITANCHOR(&((_varptr)->subtimers))
-
-/*!
-\brief Enqueue an event.
-*/
-#define BMTimerDispatcher_ENQ(_varptr, _evptr) \
-    BMEv_EnQ(_evptr, &((_varptr)->iq))
-
-/*!
-\brief Crunch the oldest queued event.
-*/
-BMStatus_t BMTimerDispatcher_Crunch(BMTimerDispatcher_pt dispather);
 #pragma endregion Timer_dispatcher_object
 #pragma region Timer_Signal_handler
 /*!

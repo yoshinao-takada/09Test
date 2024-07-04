@@ -141,18 +141,6 @@ BMStatus_t BMSubtimers_Tick(BMDLNode_pt anchor)
     BMDLNode_UNLOCK(anchor);
     return status;
 }
-
-BMStatus_t BMTimerDispatcher_Crunch(BMTimerDispatcher_pt dispather)
-{
-    BMStatus_t status = BMStatus_SUCCESS;
-    BMEv_pt evptr = BMEv_DeQ(&dispather->iq);
-    if (evptr)
-    {
-        status = BMSubtimers_Tick(&dispather->subtimers);
-        evptr->listeners--;
-    }
-    return status;
-}
 #pragma endregion subtimer_impl
 #pragma region TIME_CONVERSION_METHODS
 static void TimeVal_FromMillisec(struct timeval* t, uint16_t millisec)
@@ -170,10 +158,19 @@ static void ITimerVal_FromMillisec(struct itimerval* t, uint16_t millisec)
 
 static BMTickCtx_t tickctx;
 static BMEv_t tickevent = BMEv_INIOBJ(BMEvId_TICK, NULL);
-static BMTimerDispatcher_t dispatcher = {
-    BMDLNode_INIOBJ(&dispatcher.iq),
-    BMDLNode_INIOBJ(&dispatcher.subtimers)
-};
+static BMTimerDispatcher_DECL(dispatcher);
+
+/*!
+\brief BMTimerDispatcher_t has only one state.
+*/
+BMStateResult_t BMTimerDispatcher_State(BMFSM_pt fsm, BMEv_pt ev)
+{
+    BMStateResult_t result = BMStateResult_ACCEPT;
+    BMTimerDispatcher_pt this = (BMTimerDispatcher_pt)fsm;
+    BMSubtimers_Tick(&this->subtimers);
+    ev->listeners--;
+    return result;
+}
 
 #pragma region Systick_timer_access_methods_for_test
 BMTickCtx_pt TickCtx() { return &tickctx; }
@@ -183,7 +180,7 @@ BMTimerDispatcher_pt TimerDispatcher() { return &dispatcher; }
 
 static void SIGALRM_Handler(int sig)
 {
-    BMTimerDispatcher_ENQ(&dispatcher, &tickevent);
+    BMFSM_PUTEV(&dispatcher.base, &tickevent);
 }
 
 BMStatus_t BMTick_Init(uint16_t interval)
