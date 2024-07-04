@@ -65,4 +65,18 @@ typedef struct BMFSM {
 \brief Put an event into the input queue of the FSM.
 */
 #define BMFSM_PUTEV(_fsmptr, _evptr) BMEv_EnQ(_evptr, &(_fsmptr)->iq)
+
+/*!
+\brief Add an instance of BMFSM_t to the linked list.
+\param fsm [in] The FSM instance.
+\param anchor [in,out] The linked list.
+*/
+BMStatus_t BMFSM_Add(BMFSM_pt fsm, BMDLNode_pt anchor);
+
+/*!
+\brief Remove an instance of BMFSM_t from the linked list.
+\param fsm [in] The FSM instance.
+\param anchor [in,out] The linked list.
+*/
+BMStatus_t BMFSM_Remove(BMFSM_pt fsm, BMDLNode_pt anchor);
 #endif /* BMFSM_H */

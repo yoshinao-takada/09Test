@@ -7,12 +7,13 @@
 #pragma region subcmd
 static const char* FLAGS[] =
 {
-    "systick", "rxthread", 
+    "systick", "rxthread", "evloop"
 };
 
 typedef enum {
     Subcmd_SYSTICK = 0,
     Subcmd_RXTHREAD = 1,
+    Subcmd_EVLOOP = 2,
 } Subcmd_t;
 
 static int ArgvMatch(int argc, const char* const *argv, const char* flag)
@@ -47,6 +48,7 @@ BMStatus_t BMTickUT();
 BMStatus_t BMEvUT();
 BMStatus_t BMFSMUT();
 BMStatus_t BMSystick(int argc, const char* const *argv);
+BMStatus_t BMEvLoop(int argc, const char* const *argv);
 
 int main(int argc, const char* *argv)
 {
@@ -58,6 +60,12 @@ int main(int argc, const char* *argv)
         {
             if (status == BMStatus_SUCCESSBREAK) break;
             else BMTest_ERRLOGBREAKEX("Fail in BMSystick()");
+        }
+        if (BMStatus_SUCCESS !=
+            (status = ArgMatchRun(argc, argv, Subcmd_EVLOOP, BMEvLoop)))
+        {
+            if (status == BMStatus_SUCCESSBREAK) break;
+            else BMTest_ERRLOGBREAKEX("Fail in BMEvLoop()");
         }
         if (BMStatus_SUCCESS != (status = BMDLNodeUT()))
         {

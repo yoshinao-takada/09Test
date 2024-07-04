@@ -89,6 +89,11 @@ typedef struct {
     BMDLNode_t subtimers; // subtimer list
 } BMTimerDispatcher_t, *BMTimerDispatcher_pt;
 
+#define BMTimerDispatcher_DECL(_varname) \
+    BMTimerDispatcher_t _varname = { \
+        { &_varname.iq, &_varname.iq, NULL, 0 }, \
+        { &_varname.subtimers, &_varname.subtimers, NULL, 0 }}
+
 #define BMTimerDispatcher_INIT(_varptr) \
     BMDLNode_INITANCHOR(&((_varptr)->iq)); \
     BMDLNode_INITANCHOR(&((_varptr)->subtimers))
